@@ -144,7 +144,7 @@ export default {
   max-width: 600px;
   margin: 2rem auto;
   padding: 0 1rem;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .loading {

@@ -7,8 +7,6 @@
             <h3 class="footer-title">Магазин</h3>
             <ul class="footer-links">
               <li><router-link to="/product">Каталог</router-link></li>
-              <li><router-link to="/registr">Регистрация</router-link></li>
-              <li><router-link to="/login">Вход</router-link></li>
             </ul>
           </div>
 
@@ -26,7 +24,7 @@
               </div>
               <div class="contact-item">
                 <i>📍</i>
-                <span>г. Москва, ул. Цветочная, 12</span>
+                <span>г. Санкт-Петербург, ул. Цветочная, 7</span>
               </div>
             </div>
 
@@ -64,7 +62,7 @@ export default {
 .flower-footer {
   background: linear-gradient(135deg, #2D3B22 0%, #3E4D31 50%, #567041 100%);
   color: white;
-  font-family: 'Arial', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .footer-top {

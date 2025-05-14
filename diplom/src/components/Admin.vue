@@ -1,362 +1,358 @@
 <template>
-    <div class="admin-panel">
-      <div class="admin-header">
-        <h1>Админ-панель</h1>
-        <div class="admin-actions">
-          <button @click="showAddProductModal" class="btn-add">
-            <i class="fas fa-plus"></i> Добавить товар
-          </button>
-        </div>
+  <div class="admin-panel">
+    <div class="admin-header">
+      <h1>Админ-панель</h1>
+      <div class="admin-actions">
+        <button @click="showAddProductModal" class="btn-add">
+          <i class="fas fa-plus"></i> Добавить товар
+        </button>
       </div>
-  
-      <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Загрузка товаров...</p>
-      </div>
-  
-      <div v-else-if="products.length === 0" class="empty-catalog">
-        <img src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png" alt="No products" class="empty-icon">
-        <h3>Товары не найдены</h3>
-        <p>Начните с добавления нового товара</p>
-      </div>
-  
-      <div v-else class="products-table">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Изображение</th>
-              <th>Название</th>
-              <th>Цена</th>
-              <th>Категория</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in products" :key="product.id_product">
-              <td>{{ product.id_product }}</td>
-              <td>
-                <img :src="product.photo || 'https://via.placeholder.com/100'" :alt="product.name" class="product-thumbnail">
-              </td>
-              <td>{{ product.name }}</td>
-              <td>{{ formatPrice(product.price) }} ₽</td>
-              <td>{{ product.category || '-' }}</td>
-              <td class="actions">
-                <button @click="viewProduct(product)" class="btn-view">
-                  <i class="fas fa-eye"></i> Просмотр
-                </button>
-                <button @click="editProduct(product)" class="btn-edit">
-                  <i class="fas fa-edit"></i> Редактировать
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-  
-      <!-- Модальное окно добавления товара -->
-      <transition name="fade">
-        <div v-if="showAddModal" class="modal-overlay" @click.self="closeModal">
-          <div class="modal-container">
-            <button class="modal-close" @click="closeModal">
-              <i class="fas fa-times"></i>
-            </button>
-            
-            <h2 class="modal-title">{{ editingProduct ? 'Редактировать товар' : 'Добавить товар' }}</h2>
-            
-            <form @submit.prevent="submitProductForm" class="product-form">
-              <div class="form-group">
-                <label>Название товара</label>
-                <input type="text" v-model="currentProduct.name" required>
-              </div>
-              
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Цена (₽)</label>
-                  <input type="number" v-model="currentProduct.price" min="0" step="0.01" required>
-                </div>
-                
+    </div>
 
-              </div>
-              
-              <div class="form-group">
-                <label>Категория</label>
-                <input type="text" v-model="currentProduct.category">
-              </div>
-              
-              <div class="form-group">
-                <label>Описание</label>
-                <textarea v-model="currentProduct.description" rows="4"></textarea>
-              </div>
-              
-              <div class="form-group">
-                <label>Изображение</label>
-                <input type="file" @change="handleFileUpload" accept="image/*">
-                <div v-if="imagePreview" class="image-preview">
-                  <img :src="imagePreview" alt="Предпросмотр">
-                </div>
-              </div>
-              
-              <div class="form-actions">
-                <button type="button" @click="closeModal" class="btn-cancel">Отмена</button>
-                <button type="submit" class="btn-submit" :disabled="submitting">
-                  {{ submitting ? 'Сохранение...' : (editingProduct ? 'Сохранить изменения' : 'Добавить товар') }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </transition>
-  
-      <!-- Модальное окно просмотра товара -->
-      <transition name="fade">
-        <div v-if="showViewModal" class="modal-overlay" @click.self="closeModal">
-          <div class="modal-container view-modal">
-            <button class="modal-close" @click="closeModal">
-              <i class="fas fa-times"></i>
-            </button>
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Загрузка товаров...</p>
+    </div>
+
+    <div v-else-if="products.length === 0" class="empty-catalog">
+      <img src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png" alt="No products" class="empty-icon">
+      <h3>Товары не найдены</h3>
+      <p>Начните с добавления нового товара</p>
+    </div>
+
+    <div v-else class="products-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Изображение</th>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Категория</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="product in products" :key="product.id_product">
+            <td>{{ product.id_product }}</td>
+            <td>
+              <img :src="getPhotoUrl(product.photo)" :alt="product.name" class="product-thumbnail">
+            </td>
+            <td>{{ product.name }}</td>
+            <td>{{ formatPrice(product.price) }} ₽</td>
+            <td>{{ product.category || '-' }}</td>
+            <td class="actions">
+              <button @click="viewProduct(product)" class="btn-view">
+                <i class="fas fa-eye"></i> Просмотр
+              </button>
+              <button @click="editProduct(product)" class="btn-edit">
+                <i class="fas fa-edit"></i> Редактировать
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Модальное окно добавления товара -->
+    <transition name="fade">
+      <div v-if="showAddModal" class="modal-overlay" @click.self="closeModal">
+        <div class="modal-container">
+          <button class="modal-close" @click="closeModal">
+            <i class="fas fa-times"></i>
+          </button>
+          
+          <h2 class="modal-title">{{ editingProduct ? 'Редактировать товар' : 'Добавить товар' }}</h2>
+          
+          <form @submit.prevent="submitProductForm" class="product-form">
+            <div class="form-group">
+              <label>Название товара</label>
+              <input type="text" v-model="currentProduct.name" required>
+            </div>
             
-            <div class="modal-content">
-              <div class="modal-gallery">
-                <img :src="currentProduct.photo || 'https://via.placeholder.com/500'" :alt="currentProduct.name" class="modal-main-image">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Цена (₽)</label>
+                <input type="number" v-model="currentProduct.price" min="0" step="0.01" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Категория</label>
+              <input type="text" v-model="currentProduct.category">
+            </div>
+            
+            <div class="form-group">
+              <label>Описание</label>
+              <textarea v-model="currentProduct.description" rows="4"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Изображение</label>
+              <input type="file" @change="handleFileUpload" accept="image/*">
+              <div v-if="imagePreview" class="image-preview">
+                <img :src="imagePreview" alt="Предпросмотр">
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="button" @click="closeModal" class="btn-cancel">Отмена</button>
+              <button type="submit" class="btn-submit" :disabled="submitting">
+                {{ submitting ? 'Сохранение...' : (editingProduct ? 'Сохранить изменения' : 'Добавить товар') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Модальное окно просмотра товара -->
+    <transition name="fade">
+      <div v-if="showViewModal" class="modal-overlay" @click.self="closeModal">
+        <div class="modal-container view-modal">
+          <button class="modal-close" @click="closeModal">
+            <i class="fas fa-times"></i>
+          </button>
+          
+          <div class="modal-content">
+            <div class="modal-gallery">
+              <img :src="getPhotoUrl(currentProduct.photo)" :alt="currentProduct.name" class="modal-main-image">
+            </div>
+            
+            <div class="modal-details">
+              <h2 class="modal-title">{{ currentProduct.name }}</h2>
+              
+              <div class="price-section">
+                <span class="current-price">{{ formatPrice(currentProduct.price) }} ₽</span>
               </div>
               
-              <div class="modal-details">
-                <h2 class="modal-title">{{ currentProduct.name }}</h2>
-                
-                <div class="price-section">
-                  <span class="current-price">{{ formatPrice(currentProduct.price) }} ₽</span>
+              <div class="product-meta">
+                <div class="meta-item" v-if="currentProduct.category">
+                  <i class="fas fa-tag"></i>
+                  <span>Категория: {{ currentProduct.category }}</span>
                 </div>
-                
-                <div class="product-meta">
-                  <div class="meta-item" v-if="currentProduct.category">
-                    <i class="fas fa-tag"></i>
-                    <span>Категория: {{ currentProduct.category }}</span>
-                  </div>
-                  
-                </div>
-                
-                <div class="product-description" v-if="currentProduct.description">
-                  <h3><i class="fas fa-align-left"></i> Описание</h3>
-                  <p>{{ currentProduct.description }}</p>
-                </div>
+              </div>
+              
+              <div class="product-description" v-if="currentProduct.description">
+                <h3><i class="fas fa-align-left"></i> Описание</h3>
+                <p>{{ currentProduct.description }}</p>
               </div>
             </div>
           </div>
         </div>
-      </transition>
-  
-      <!-- Уведомление -->
-      <transition name="slide-up">
-        <div v-if="showNotification" class="notification" :class="notificationType">
-          <div class="notification-icon">
-            <i :class="notificationIcon"></i>
-          </div>
-          <div class="notification-content">
-            <h4>{{ notificationTitle }}</h4>
-            <p>{{ notificationMessage }}</p>
-          </div>
+      </div>
+    </transition>
+
+    <!-- Уведомление -->
+    <transition name="slide-up">
+      <div v-if="showNotification" class="notification" :class="notificationType">
+        <div class="notification-icon">
+          <i :class="notificationIcon"></i>
         </div>
-      </transition>
-    </div>
-  </template>
-  
-  <script>
-  import axios from 'axios';
-  
-  export default {
-    name: 'AdminPanel',
-    data() {
-      return {
-        products: [],
-        loading: true,
-        showAddModal: false,
-        showViewModal: false,
-        currentProduct: {
-          name: '',
-          price: 0,
-          category: '',
-          description: '',
-          photo: null
-        },
-        editingProduct: null,
-        imagePreview: null,
-        submitting: false,
-        showNotification: false,
-        notificationTitle: '',
-        notificationMessage: '',
-        notificationType: 'success',
-        notificationIcon: 'fas fa-check-circle'
-      };
+        <div class="notification-content">
+          <h4>{{ notificationTitle }}</h4>
+          <p>{{ notificationMessage }}</p>
+        </div>
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  name: 'AdminPanel',
+  data() {
+    return {
+      products: [],
+      loading: true,
+      showAddModal: false,
+      showViewModal: false,
+      currentProduct: {
+        name: '',
+        price: 0,
+        category: '',
+        description: '',
+        photo: null
+      },
+      editingProduct: null,
+      imagePreview: null,
+      submitting: false,
+      showNotification: false,
+      notificationTitle: '',
+      notificationMessage: '',
+      notificationType: 'success',
+      notificationIcon: 'fas fa-check-circle'
+    };
+  },
+  mounted() {
+    this.fetchProducts();
+  },
+  methods: {
+    getPhotoUrl(photoPath) {
+      if (!photoPath) return 'https://via.placeholder.com/100';
+      // Если это уже URL (превью), возвращаем как есть
+      if (photoPath.startsWith('http') || photoPath.startsWith('data:')) return photoPath;
+      // Иначе преобразуем путь с бэкенда в URL
+      return `https://k-kaneva.сделай.site/assets/upload/${photoPath.split('/').pop()}`;
     },
-    mounted() {
-      this.fetchProducts();
-    },
-    methods: {
-      async fetchProducts() {
-        try {
-          const token = localStorage.getItem('authToken');
-          const response = await axios.get('https://k-kaneva.сделай.site/api/product', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.data && response.data.data) {
-            this.products = response.data.data.map(product => {
-              const photo = product.photo 
-                ? product.photo.replace(
-                    '/home/kaneva/web/k-kaneva.xn--80ahdri7a.site/public_html',
-                    'https://k-kaneva.сделай.site'
-                  )
-                : '';
-              return {
-                ...product,
-                photo
-              };
-            });
-          }
-        } catch (error) {
-          console.error('Ошибка при загрузке товаров:', error);
-          this.showAlert('Ошибка', 'Не удалось загрузить товары', 'error');
-        } finally {
-          this.loading = false;
-        }
-      },
-      
-      formatPrice(price) {
-        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-      },
-      
-      showAddProductModal() {
-        this.resetForm();
-        this.showAddModal = true;
-        this.editingProduct = null;
-      },
-      
-      viewProduct(product) {
-        this.currentProduct = { ...product };
-        this.showViewModal = true;
-      },
-      
-      editProduct(product) {
-        this.currentProduct = { ...product };
-        this.imagePreview = product.photo || null;
-        this.showAddModal = true;
-        this.editingProduct = product;
-      },
-      
-      handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-          this.currentProduct.photo = file;
-          
-          // Создаем превью изображения
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.imagePreview = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      },
-      
-      resetForm() {
-        this.currentProduct = {
-          name: '',
-          price: 0,
-          category: '',
-          description: '',
-          photo: null
-        };
-        this.imagePreview = null;
-      },
-      
-      closeModal() {
-        this.showAddModal = false;
-        this.showViewModal = false;
-        this.resetForm();
-        this.editingProduct = null;
-      },
-      
-      async submitProductForm() {
-        this.submitting = true;
+
+    async fetchProducts() {
+      try {
         const token = localStorage.getItem('authToken');
-        
-        try {
-          const formData = new FormData();
-          formData.append('name', this.currentProduct.name);
-          formData.append('price', this.currentProduct.price);
-          formData.append('category', this.currentProduct.category);
-          formData.append('description', this.currentProduct.description);
-          
-          if (this.currentProduct.photo instanceof File) {
-            formData.append('photo', this.currentProduct.photo);
+        const response = await axios.get('https://k-kaneva.сделай.site/api/product', {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-          
-          if (this.editingProduct) {
-            // Редактирование существующего товара
-            const response = await axios.post(
-              `https://k-kaneva.сделай.site/api/admin/product/${this.editingProduct.id_product}`,
-              formData,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'multipart/form-data'
-                }
-              }
-            );
-            
-            if (response.status === 200) {
-              this.showAlert('Успех', 'Товар успешно обновлен', 'success');
-              this.fetchProducts();
-              this.closeModal();
-            }
-          } else {
-            // Добавление нового товара
-            const response = await axios.post(
-              'https://k-kaneva.сделай.site/admin/product',
-              formData,
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'multipart/form-data'
-                }
-              }
-            );
-            
-            if (response.status === 201) {
-              this.showAlert('Успех', 'Товар успешно добавлен', 'success');
-              this.fetchProducts();
-              this.closeModal();
-            }
-          }
-        } catch (error) {
-          console.error('Ошибка при сохранении товара:', error);
-          this.showAlert('Ошибка', 'Не удалось сохранить товар', 'error');
-        } finally {
-          this.submitting = false;
-        }
-      },
-      
-      showAlert(title, message, type = 'success') {
-        this.notificationTitle = title;
-        this.notificationMessage = message;
-        this.notificationType = type;
+        });
         
-        if (type === 'success') {
-          this.notificationIcon = 'fas fa-check-circle';
-        } else if (type === 'error') {
-          this.notificationIcon = 'fas fa-exclamation-circle';
+        if (response.data && response.data.data) {
+          this.products = response.data.data;
         }
-        
-        this.showNotification = true;
-        setTimeout(() => {
-          this.showNotification = false;
-        }, 3000);
+      } catch (error) {
+        console.error('Ошибка при загрузке товаров:', error);
+        this.showAlert('Ошибка', 'Не удалось загрузить товары', 'error');
+      } finally {
+        this.loading = false;
       }
+    },
+    
+    formatPrice(price) {
+      return price ? price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") : '0';
+    },
+    
+    showAddProductModal() {
+      this.resetForm();
+      this.showAddModal = true;
+      this.editingProduct = null;
+    },
+    
+    viewProduct(product) {
+      this.currentProduct = { ...product };
+      this.showViewModal = true;
+    },
+    
+    editProduct(product) {
+      this.currentProduct = { ...product };
+      this.imagePreview = this.getPhotoUrl(product.photo);
+      this.showAddModal = true;
+      this.editingProduct = product;
+    },
+    
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.currentProduct.photo = file;
+        
+        // Создаем превью изображения
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.imagePreview = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    
+    resetForm() {
+      this.currentProduct = {
+        name: '',
+        price: 0,
+        category: '',
+        description: '',
+        photo: null
+      };
+      this.imagePreview = null;
+    },
+    
+    closeModal() {
+      this.showAddModal = false;
+      this.showViewModal = false;
+      this.resetForm();
+      this.editingProduct = null;
+    },
+    
+    async submitProductForm() {
+  this.submitting = true;
+  const token = localStorage.getItem('authToken');
+  
+  try {
+    const formData = new FormData();
+    // Добавляем все обязательные поля
+    formData.append('Product[name]', this.currentProduct.name || '');
+    formData.append('Product[price]', this.currentProduct.price || 0);
+    formData.append('Product[id_category]', this.currentProduct.category || ''); // Изменил на id_category
+    formData.append('Product[description]', this.currentProduct.description || '');
+    
+    if (this.currentProduct.photo instanceof File) {
+      formData.append('photo', this.currentProduct.photo);
+    } else if (this.editingProduct?.photo) {
+      // Если редактируем и фото не меняли, отправляем существующее фото
+      formData.append('photo', this.editingProduct.photo);
     }
-  };
-  </script>
+
+    // Для отладки - посмотрим что отправляем
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+    
+    const url = this.editingProduct 
+      ? `https://k-kaneva.сделай.site/api/admin/product/${this.editingProduct.id_product}`
+      : 'https://k-kaneva.сделай.site/api/admin/product';
+    
+    const response = await axios({
+      method: 'post',
+      url,
+      data: formData,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    if (response.status === 200 || response.status === 201) {
+      this.showAlert('Успех', this.editingProduct ? 'Товар успешно обновлен' : 'Товар успешно добавлен', 'success');
+      this.fetchProducts();
+      this.closeModal();
+    }
+  } catch (error) {
+    console.error('Полная ошибка:', error);
+    console.error('Ответ сервера:', error.response?.data);
+    
+    let errorMessage = 'Не удалось сохранить товар';
+    if (error.response?.data?.errors) {
+      // Форматируем ошибки валидации в читаемый вид
+      const errors = error.response.data.errors;
+      errorMessage = Object.entries(errors)
+        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+        .join('; ');
+    }
+    
+    this.showAlert('Ошибка валидации', errorMessage, 'error');
+  } finally {
+    this.submitting = false;
+  }
+},
+    
+    showAlert(title, message, type = 'success') {
+      this.notificationTitle = title;
+      this.notificationMessage = message;
+      this.notificationType = type;
+      
+      if (type === 'success') {
+        this.notificationIcon = 'fas fa-check-circle';
+      } else if (type === 'error') {
+        this.notificationIcon = 'fas fa-exclamation-circle';
+      }
+      
+      this.showNotification = true;
+      setTimeout(() => {
+        this.showNotification = false;
+      }, 3000);
+    }
+  }
+};
+</script>
   
   <style scoped>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');

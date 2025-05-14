@@ -104,7 +104,7 @@
               <div class="product-meta">
                 <div class="meta-item">
                   <i class="fas fa-tag"></i>
-                  <span>Категория: {{ selectedProduct.id_category }}</span>
+                  <span>Категория: {{ selectedProduct.category_name }}</span>
                 </div>
               </div>
               
@@ -252,29 +252,33 @@ export default {
     },
     
     async showProductDetails(id_product) {
-      try {
-        const response = await axios.get(`https://k-kaneva.сделай.site/api/product/${id_product}`);
-        if (response.data && response.data.data) {
-          const photo = response.data.data.photo 
-            ? response.data.data.photo.replace(
-                '/home/kaneva/web/k-kaneva.xn--80ahdri7a.site/public_html',
-                'https://k-kaneva.сделай.site'
-              )
-            : '';
-          
-          this.selectedProduct = {
-            ...response.data.data,
-            photo
-          };
-          // Блокируем прокрутку страницы
-          document.body.style.overflow = 'hidden';
-          document.body.style.position = 'fixed';
-          document.body.style.width = '100%';
-        }
-      } catch (error) {
-        console.error('Ошибка при загрузке деталей товара:', error);
-      }
-    },
+  try {
+    const response = await axios.get(`https://k-kaneva.сделай.site/api/product/${id_product}`);
+    if (response.data && response.data.data) {
+      const photo = response.data.data.photo 
+        ? response.data.data.photo.replace(
+            '/home/kaneva/web/k-kaneva.xn--80ahdri7a.site/public_html',
+            'https://k-kaneva.сделай.site'
+          )
+        : '';
+      
+      // Находим полную информацию о товаре из списка products, чтобы получить category_name
+      const fullProductInfo = this.products.find(p => p.id_product === id_product);
+      
+      this.selectedProduct = {
+        ...response.data.data,
+        photo,
+        category_name: fullProductInfo?.category_name || '' // Добавляем category_name
+      };
+      // Блокируем прокрутку страницы
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке деталей товара:', error);
+  }
+},
     
     closeModal() {
       this.selectedProduct = null;
@@ -653,7 +657,7 @@ body {
 .modal-title {
   font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #567041;
+  color: #2D3B22;
 }
 
 .price-section {

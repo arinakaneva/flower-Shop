@@ -1,7 +1,9 @@
 <template>
   <div class="orders-page">
-    <div v-if="loading" class="loading">Загрузка заказов...</div>
-    
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Загрузка заказов...</p>
+    </div>
     <div v-if="error" class="error-message">
       {{ error }}
     </div>
@@ -280,6 +282,33 @@ export default {
   margin: 40px auto;
   padding: 0 20px;
   font-family: 'Montserrat', sans-serif;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 15px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(45, 59, 34, 0.2);
+  border-top-color: #2D3B22;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #2D3B22;
+  font-size: 1.1rem;
 }
 
 .loading, .error-message, .empty-orders {

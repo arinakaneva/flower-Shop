@@ -54,14 +54,14 @@ export default {
 
 <style scoped>
 .home-page {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   color: #333;
 }
 
 /* Герой-секция */
 .hero-section {
   position: relative;
-  min-height: 80vh;
+  min-height: 70vh;
   background-color: #2D3B22;
   display: flex;
   align-items: center;

@@ -1,9 +1,8 @@
 <template>
   <div class="login-page">
     <div class="login-container">
-      <div class="login-header">
-        <h1>Вход в систему</h1>
-        <div class="logo-decoration"></div>
+      <div>
+        <h1 class="login-title">Вход в систему</h1>
       </div>
       <form @submit.prevent="handleSubmit" class="login-form">
         <div class="form-group">
@@ -112,6 +111,7 @@ export default {
   min-height: 65vh;
   background-color: #f5f5f5;
   padding: 20px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .login-container {
@@ -125,26 +125,29 @@ export default {
   overflow: hidden;
 }
 
-.login-header {
-  margin-bottom: 32px;
+.login-title {
   text-align: center;
-  position: relative;
-}
-
-.login-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
   color: #2D3B22;
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 1rem;
 }
 
-.logo-decoration {
-  height: 4px;
-  width: 60px;
-  background: #2D3B22;
-  margin: 0 auto;
+.login-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 5px;
+  background: linear-gradient(90deg, #2D3B22, #83aa64);
   border-radius: 2px;
 }
+
+
 
 .login-form {
   display: flex;
@@ -246,8 +249,8 @@ label {
     padding: 30px 20px;
   }
   
-  .login-header h1 {
-    font-size: 24px;
+  .login-title {
+    font-size: 2rem;
   }
   
   .form-input, .submit-btn {

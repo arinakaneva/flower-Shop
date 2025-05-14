@@ -1,11 +1,9 @@
 <template>
   <div class="registration-page">
-    <div class="background-floral"></div>
-    
-    <div v-if="!submitted" class="registration-container">
-      <div class="registration-header">
-        <h1>Регистрация</h1>
-        <div class="logo-decoration"></div>
+    <div class="registration-container">
+      <div >
+        <h1 class="registration-title">Регистрация</h1>
+        
       </div>
       <form @submit.prevent="handleSubmit" class="registration-form">
         <div class="form-group">
@@ -111,19 +109,12 @@
         </button>
       </form>
       
+      <div v-if="submitted" class="success-message">
+        <p>Регистрация прошла успешно! Перенаправляем на страницу входа...</p>
+      </div>
+      
       <div v-if="serverError" class="error-message server-error">
         {{ serverError }}
-      </div>
-    </div>
-
-    <div v-if="submitted" class="success-container">
-      <div class="success-content">
-        <svg class="success-icon" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z" />
-        </svg>
-        <h2>Регистрация успешно завершена!</h2>
-        <p>Ваш аккаунт был создан. Теперь вы можете войти в систему.</p>
-        <button @click="goToLogin" class="login-btn">Перейти к входу</button>
       </div>
     </div>
   </div>
@@ -251,6 +242,11 @@ export default {
         if (response.ok) {
           this.submitted = true;
           this.resetForm();
+          
+          // Перенаправление через 2 секунды
+          this.redirectTimer = setTimeout(() => {
+            this.router.push('/login');
+          }, 2000);
         } else {
           if (data.errors) {
             for (const [field, message] of Object.entries(data.errors)) {
@@ -288,12 +284,10 @@ export default {
         password: '',
         password_repetition: ''
       };
-    },
-    goToLogin() {
-      this.router.push('/login');
     }
   },
   beforeUnmount() {
+    // Очищаем таймер при размонтировании компонента
     if (this.redirectTimer) {
       clearTimeout(this.redirectTimer);
     }
@@ -306,21 +300,10 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 65vh;
+  background-color: #f5f5f5;
   padding: 20px;
-  position: relative;
-  background-color: #f9f9f7;
-}
-
-.background-floral {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" opacity="0.05"><path d="M50,30 C55,20 65,20 70,30 C75,40 70,50 60,50 C70,50 75,60 70,70 C65,80 55,80 50,70 C45,80 35,80 30,70 C25,60 30,50 40,50 C30,50 25,40 30,30 C35,20 45,20 50,30 Z" fill="%232D3B22"/></svg>');
-  background-repeat: repeat;
-  z-index: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .registration-container {
@@ -331,29 +314,32 @@ export default {
   box-shadow: 0 8px 24px rgba(45, 59, 34, 0.1);
   padding: 40px;
   position: relative;
-  z-index: 1;
+  overflow: hidden;
 }
 
-.registration-header {
-  margin-bottom: 32px;
+.registration-title {
   text-align: center;
-  position: relative;
-}
-
-.registration-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
   color: #2D3B22;
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 16px;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 1rem;
 }
 
-.logo-decoration {
-  height: 4px;
-  width: 60px;
-  background: #2D3B22;
-  margin: 0 auto;
+.registration-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 5px;
+  background: linear-gradient(90deg, #2D3B22, #83aa64);
   border-radius: 2px;
 }
+
+
 
 .registration-form {
   display: flex;
@@ -459,84 +445,27 @@ label {
   to { transform: rotate(360deg); }
 }
 
-.success-container {
-  width: 100%;
-  max-width: 500px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(45, 59, 34, 0.1);
-  padding: 40px;
-  position: relative;
-  z-index: 1;
+.success-message {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #dff0d8;
+  border: 1px solid #d6e9c6;
+  border-radius: 8px;
+  color: #3c763d;
   text-align: center;
 }
 
-.success-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.success-icon {
-  width: 80px;
-  height: 80px;
-  color: #4CAF50;
-}
-
-.success-container h2 {
-  color: #2D3B22;
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.success-container p {
-  color: #555;
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-
-.login-btn {
-  padding: 12px 24px;
-  background-color: #2D3B22;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-  background-color: #465835;
-  transform: translateY(-1px);
-}
-
-.login-btn:active {
-  transform: translateY(0);
-}
-
 @media (max-width: 480px) {
-  .registration-container, .success-container {
+  .registration-container {
     padding: 30px 20px;
   }
   
-  .registration-header h1 {
-    font-size: 24px;
+  .registration-title {
+    font-size: 2rem;
   }
   
   .form-input, .submit-btn {
     padding: 12px 14px;
-  }
-  
-  .success-icon {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .success-container h2 {
-    font-size: 20px;
   }
 }
 </style>

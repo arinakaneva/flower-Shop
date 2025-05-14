@@ -341,6 +341,7 @@ body {
   font-weight: 700;
   position: relative;
   padding-bottom: 1rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .page-title::after {
@@ -363,6 +364,7 @@ body {
   justify-content: center;
   min-height: 300px;
   gap: 20px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .loading-spinner {
@@ -370,8 +372,9 @@ body {
   height: 50px;
   border: 5px solid rgba(108, 92, 231, 0.2);
   border-radius: 50%;
-  border-top-color: var(--litegreen-color);
+  border-top-color: #2D3B22;
   animation: spin 1s ease-in-out infinite;
+  font-family: 'Montserrat', sans-serif;
 }
 
 @keyframes spin {
@@ -386,6 +389,7 @@ body {
   margin: 20px 0;
   display: flex;
   justify-content: center;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .error-content {
@@ -421,6 +425,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .retry-button:hover {
@@ -440,6 +445,7 @@ body {
   border-radius: 12px;
   box-shadow: var(--shadow);
   margin: 30px 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .empty-cart-icon {
@@ -510,6 +516,7 @@ body {
   transition: var(--transition);
   position: relative;
   align-items: center;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .cart-item:hover {
@@ -625,6 +632,7 @@ body {
   justify-content: space-between;
   margin-bottom: 10px;
   font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .total-amount {
@@ -648,6 +656,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .checkout-btn svg {
@@ -675,6 +684,7 @@ body {
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(5px);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .modal-content {
@@ -686,6 +696,7 @@ body {
   padding: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   animation: modalFadeIn 0.3s ease-out;
+  font-family: 'Montserrat', sans-serif;
 }
 
 @keyframes modalFadeIn {
@@ -792,6 +803,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   flex: 1;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .cancel-btn:hover {
@@ -812,6 +824,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .submit-btn svg {
@@ -819,9 +832,14 @@ body {
   height: 18px;
   fill: var(--white);
 }
-
+.submit-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: #FFFFFF;
+}
 .submit-btn:hover {
-  background-color: #00a884;
+  background-color: #2D3B22;
+  color:#FFFFFF;
   transform: translateY(-2px);
 }
 
