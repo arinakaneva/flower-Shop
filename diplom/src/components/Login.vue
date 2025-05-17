@@ -108,21 +108,36 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 65vh;
-  background-color: #f5f5f5;
+  min-height: 60vh;
   padding: 20px;
   font-family: 'Montserrat', sans-serif;
+  background-image: url('https://k-kaneva.xn--80ahdri7a.site/assets/upload/regis1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7); /* Прозрачность фона */
+  z-index: 0;
 }
 
 .login-container {
   width: 100%;
   max-width: 420px;
-  background: white;
+  background: rgba(255, 255, 255, 0.9); /* Прозрачность формы */
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(45, 59, 34, 0.1);
   padding: 40px;
   position: relative;
-  overflow: hidden;
+  z-index: 1;
 }
 
 .login-title {
@@ -146,8 +161,6 @@ export default {
   background: linear-gradient(90deg, #2D3B22, #83aa64);
   border-radius: 2px;
 }
-
-
 
 .login-form {
   display: flex;
@@ -173,7 +186,7 @@ label {
   border-radius: 8px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: #f9f9f9;
+  background-color: rgba(249, 249, 249, 0.8); /* Прозрачность полей ввода */
 }
 
 .form-input:focus {
@@ -183,7 +196,7 @@ label {
 }
 
 .form-input:disabled {
-  background-color: #eee;
+  background-color: rgba(238, 238, 238, 0.8);
   cursor: not-allowed;
 }
 
@@ -236,7 +249,7 @@ label {
 .error-message {
   margin-top: 20px;
   padding: 12px;
-  background-color: #fff0f0;
+  background-color: rgba(255, 240, 240, 0.8);
   color: #d32f2f;
   border-radius: 8px;
   text-align: center;

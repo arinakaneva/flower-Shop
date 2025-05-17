@@ -45,10 +45,15 @@
               <div class="item-total">Сумма: {{ formatPrice(item.total_price) }}</div>
             </div>
             <div class="quantity-controls">
-              <div class="quantity-value">{{ item.quantity }}</div>
               <button @click="removeFromCart(item.id_product)" class="quantity-btn minus" title="Удалить">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M19 13H5v-2h14v2z"/>
+                </svg>
+              </button>
+              <div class="quantity-value">{{ item.quantity }}</div>
+              <button @click="addToCart(item.id_product)" class="quantity-btn plus" title="Добавить">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                 </svg>
               </button>
             </div>
@@ -84,7 +89,7 @@
         <form @submit.prevent="submitOrder" class="order-form">
           <div class="form-group">
             <label for="name">Имя:</label>
-            <input type="text" id="name" v-model="orderData.name" required placeholder="Ваше имя">
+            <input type="text" id="name" v-model="orderData.name" required placeholder="Ваше имя получателя">
           </div>
           
           <div class="form-group">
@@ -164,6 +169,7 @@ export default {
         const token = localStorage.getItem('authToken')
         if (!token) {
           this.error = 'Вы не авторизованы'
+          this.loading = false
           return
         }
         
@@ -175,6 +181,16 @@ export default {
           }
         })
         
+        if (response.status === 400) {
+          // Обрабатываем случай пустой корзины как нормальное состояние
+          const errorData = await response.json()
+          if (errorData.error?.message === 'Нет товаров в корзине') {
+            this.cartItems = []
+            this.loading = false
+            return
+          }
+        }
+        
         if (!response.ok) {
           const errorData = await response.json()
           throw new Error(errorData.error?.message || 'Ошибка при загрузке корзины')
@@ -184,7 +200,7 @@ export default {
         this.cartItems = data.data || []
         
         if (data.data && data.data.length > 0) {
-          this.orderData.id_cart = data.data[0].id_cart || null;
+          this.orderData.id_cart = data.data[0].id_cart || null
         }
       } catch (err) {
         console.error('Ошибка при загрузке корзины:', err)
@@ -194,17 +210,50 @@ export default {
       }
     },
     
+    async addToCart(id_product) {
+      try {
+        this.loading = true
+        this.error = null
+        
+        const token = localStorage.getItem('authToken')
+        if (!token) {
+          throw new Error('Вы не авторизованы')
+        }
+        
+        const response = await fetch('https://k-kaneva.сделай.site/api/cart', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id_product })
+        })
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error?.message || 'Ошибка при добавлении товара')
+        }
+        
+        this.fetchCartItems()
+      } catch (err) {
+        console.error('Ошибка при добавлении товара:', err)
+        this.error = err.message
+      } finally {
+        this.loading = false
+      }
+    },
+    
     getImageUrl(dbPath) {
-      if (!dbPath) return '';
-      if (dbPath.startsWith('http')) return dbPath;
+      if (!dbPath) return ''
+      if (dbPath.startsWith('http')) return dbPath
       if (dbPath.includes('/public_html/')) {
-        const parts = dbPath.split('/public_html/');
-        return `https://k-kaneva.сделай.site/${parts[1]}`;
+        const parts = dbPath.split('/public_html/')
+        return `https://k-kaneva.сделай.site/${parts[1]}`
       }
       if (dbPath.startsWith('assets/')) {
-        return `https://k-kaneva.сделай.site/${dbPath}`;
+        return `https://k-kaneva.сделай.site/${dbPath}`
       }
-      return `https://k-kaneva.сделай.site/assets/upload/${dbPath}`;
+      return `https://k-kaneva.сделай.site/assets/upload/${dbPath}`
     },
     
     async removeFromCart(id_product) {
@@ -225,7 +274,8 @@ export default {
           }
         })
         
-        if (response.status === 204) {
+        if (response.status === 204 || response.status === 400) {
+          // 204 - успешное удаление, 400 - возможно товар уже удален
           this.fetchCartItems()
           return
         }
@@ -252,21 +302,21 @@ export default {
     },
     
     showCheckoutModal() {
-      this.showModal = true;
+      this.showModal = true
     },
     
     closeModal() {
-      this.showModal = false;
+      this.showModal = false
     },
     
     async submitOrder() {
       try {
-        this.loading = true;
-        this.error = null;
+        this.loading = true
+        this.error = null
         
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken')
         if (!token) {
-          throw new Error('Вы не авторизованы');
+          throw new Error('Вы не авторизованы')
         }
         
         const response = await fetch('https://k-kaneva.сделай.site/api/order', {
@@ -276,26 +326,27 @@ export default {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(this.orderData)
-        });
+        })
         
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error?.message || 'Ошибка при оформлении заказа');
+          const errorData = await response.json()
+          throw new Error(errorData.error?.message || 'Ошибка при оформлении заказа')
         }
         
-        const data = await response.json();
-        this.closeModal();
-        this.$router.push('/order');
+        const data = await response.json()
+        this.closeModal()
+        this.$router.push('/order')
       } catch (err) {
-        console.error('Ошибка при оформлении заказа:', err);
-        this.error = err.message;
+        console.error('Ошибка при оформлении заказа:', err)
+        this.error = err.message
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     }
   }
 }
 </script>
+
 
 <style scoped>
 /* Основные стили */
@@ -412,7 +463,13 @@ body {
   font-weight: 500;
   margin-bottom: 15px;
 }
+.quantity-btn.plus:hover {
+  background-color: rgba(62, 77, 49, 0.1);
+}
 
+.quantity-btn.plus:hover svg {
+  fill: var(--litegreen-color);
+}
 .retry-button {
   background-color: var(--error-color);
   color: var(--white);
@@ -527,8 +584,9 @@ body {
 .item-image {
   width: 100px;
   height: 100px;
-  margin-right: 20px;
+  margin-right: 2px;
   flex-shrink: 0;
+  border-radius: 8px;
 }
 
 .image-placeholder {

@@ -40,7 +40,7 @@
             </td>
             <td>{{ product.name }}</td>
             <td>{{ formatPrice(product.price) }} ₽</td>
-            <td>{{ product.category || '-' }}</td>
+            <td>{{ product.category_name || '-' }}</td>
             <td class="actions">
               <button @click="viewProduct(product)" class="btn-view">
                 <i class="fas fa-eye"></i> Просмотр
@@ -78,9 +78,15 @@
             </div>
             
             <div class="form-group">
-              <label>Категория</label>
-              <input type="text" v-model="currentProduct.category">
-            </div>
+            <label>ID Категории</label>
+            <input 
+              type="number" 
+              v-model.number="currentProduct.category" 
+              min="1" 
+              required
+              placeholder="Введите числовой ID категории"
+            >
+          </div>
             
             <div class="form-group">
               <label>Описание</label>
@@ -191,10 +197,7 @@ export default {
   },
   methods: {
     getPhotoUrl(photoPath) {
-      if (!photoPath) return 'https://via.placeholder.com/100';
-      // Если это уже URL (превью), возвращаем как есть
       if (photoPath.startsWith('http') || photoPath.startsWith('data:')) return photoPath;
-      // Иначе преобразуем путь с бэкенда в URL
       return `https://k-kaneva.сделай.site/assets/upload/${photoPath.split('/').pop()}`;
     },
 
@@ -234,10 +237,17 @@ export default {
     },
     
     editProduct(product) {
-      this.currentProduct = { ...product };
-      this.imagePreview = this.getPhotoUrl(product.photo);
-      this.showAddModal = true;
+      this.currentProduct = {
+        name: product.name,
+        price: product.price,
+        category: product.id_category || product.category || '', // Используем id_category или category
+        description: product.description || '', // Добавляем описание
+        photo: product.photo
+      };
+      
+      this.imagePreview = product.photo ? this.getPhotoUrl(product.photo) : null;
       this.editingProduct = product;
+      this.showAddModal = true;
     },
     
     handleFileUpload(event) {
@@ -245,7 +255,6 @@ export default {
       if (file) {
         this.currentProduct.photo = file;
         
-        // Создаем превью изображения
         const reader = new FileReader();
         reader.onload = (e) => {
           this.imagePreview = e.target.result;
@@ -273,66 +282,58 @@ export default {
     },
     
     async submitProductForm() {
-  this.submitting = true;
-  const token = localStorage.getItem('authToken');
-  
-  try {
-    const formData = new FormData();
-    // Добавляем все обязательные поля
-    formData.append('Product[name]', this.currentProduct.name || '');
-    formData.append('Product[price]', this.currentProduct.price || 0);
-    formData.append('Product[id_category]', this.currentProduct.category || ''); // Изменил на id_category
-    formData.append('Product[description]', this.currentProduct.description || '');
-    
-    if (this.currentProduct.photo instanceof File) {
-      formData.append('photo', this.currentProduct.photo);
-    } else if (this.editingProduct?.photo) {
-      // Если редактируем и фото не меняли, отправляем существующее фото
-      formData.append('photo', this.editingProduct.photo);
-    }
+      this.submitting = true;
+      const token = localStorage.getItem('authToken');
+      
+      try {
+        const formData = new FormData();
+        formData.append('name', this.currentProduct.name.trim());
+        formData.append('price', Number(this.currentProduct.price));
+        formData.append('id_category', Number(this.currentProduct.category));
+        formData.append('description', this.currentProduct.description.trim());
+        
+        if (this.currentProduct.photo instanceof File) {
+          formData.append('photo', this.currentProduct.photo);
+        } else if (this.editingProduct?.photo && !(this.currentProduct.photo instanceof File)) {
+          formData.append('photo', this.editingProduct.photo);
+        }
 
-    // Для отладки - посмотрим что отправляем
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-    
-    const url = this.editingProduct 
-      ? `https://k-kaneva.сделай.site/api/admin/product/${this.editingProduct.id_product}`
-      : 'https://k-kaneva.сделай.site/api/admin/product';
-    
-    const response = await axios({
-      method: 'post',
-      url,
-      data: formData,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data'
+        const url = this.editingProduct 
+          ? `https://k-kaneva.сделай.site/api/admin/product/${this.editingProduct.id_product}`
+          : 'https://k-kaneva.сделай.site/api/admin/product';
+        
+        const response = await axios({
+          method: 'post',
+          url,
+          data: formData,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (response.status === 200 || response.status === 201) {
+          this.showAlert('Успех', this.editingProduct ? 'Товар успешно обновлен' : 'Товар успешно добавлен', 'success');
+          this.fetchProducts();
+          this.closeModal();
+        }
+      } catch (error) {
+        console.error('Ошибка при сохранении товара:', error);
+        let errorMessage = 'Не удалось сохранить товар';
+        
+        if (error.response?.data?.errors) {
+          errorMessage = Object.entries(error.response.data.errors)
+            .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+            .join('; ');
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        this.showAlert('Ошибка', errorMessage, 'error');
+      } finally {
+        this.submitting = false;
       }
-    });
-    
-    if (response.status === 200 || response.status === 201) {
-      this.showAlert('Успех', this.editingProduct ? 'Товар успешно обновлен' : 'Товар успешно добавлен', 'success');
-      this.fetchProducts();
-      this.closeModal();
-    }
-  } catch (error) {
-    console.error('Полная ошибка:', error);
-    console.error('Ответ сервера:', error.response?.data);
-    
-    let errorMessage = 'Не удалось сохранить товар';
-    if (error.response?.data?.errors) {
-      // Форматируем ошибки валидации в читаемый вид
-      const errors = error.response.data.errors;
-      errorMessage = Object.entries(errors)
-        .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
-        .join('; ');
-    }
-    
-    this.showAlert('Ошибка валидации', errorMessage, 'error');
-  } finally {
-    this.submitting = false;
-  }
-},
+    },
     
     showAlert(title, message, type = 'success') {
       this.notificationTitle = title;
