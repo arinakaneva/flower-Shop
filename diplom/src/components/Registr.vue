@@ -1,9 +1,8 @@
 <template>
   <div class="registration-page">
     <div class="registration-container">
-      <div >
+      <div>
         <h1 class="registration-title">Регистрация</h1>
-        
       </div>
       <form @submit.prevent="handleSubmit" class="registration-form">
         <div class="form-group">
@@ -60,45 +59,59 @@
             type="tel"
             id="phone"
             v-model="form.phone"
+            @input="formatPhone"
             required
-            placeholder="Введите ваш телефон"
+            placeholder="+7(___)___-__-__"
             class="form-input"
             :class="{ 'error': errors.phone }"
             :disabled="isLoading"
             @blur="validatePhone"
+            maxlength="17"
           >
           <p v-if="errors.phone" class="error-message">{{ errors.phone }}</p>
         </div>
         
-        <div class="form-group">
+        <div class="form-group password-group">
           <label for="password">Пароль:</label>
-          <input
-            type="password"
-            id="password"
-            v-model="form.password"
-            required
-            placeholder="Придумайте пароль (минимум 8 символов)"
-            class="form-input"
-            :class="{ 'error': errors.password }"
-            :disabled="isLoading"
-            @blur="validatePassword"
-          >
+          <div class="password-input-wrapper">
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              id="password"
+              v-model="form.password"
+              required
+              placeholder="Придумайте пароль (минимум 8 символов)"
+              class="form-input"
+              :class="{ 'error': errors.password }"
+              :disabled="isLoading"
+              @blur="validatePassword"
+            >
+            <span class="password-toggle" @click="togglePasswordVisibility">
+              <i v-if="showPassword" class="eye-icon">👁️</i>
+              <i v-else class="eye-icon">👁️</i>
+            </span>
+          </div>
           <p v-if="errors.password" class="error-message">{{ errors.password }}</p>
         </div>
         
-        <div class="form-group">
+        <div class="form-group password-group">
           <label for="password_repetition">Повторите пароль:</label>
-          <input
-            type="password"
-            id="password_repetition"
-            v-model="form.password_repetition"
-            required
-            placeholder="Повторите пароль"
-            class="form-input"
-            :class="{ 'error': errors.password_repetition || (!passwordsMatch && form.password_repetition) }"
-            :disabled="isLoading"
-            @blur="validatePasswordRepetition"
-          >
+          <div class="password-input-wrapper">
+            <input
+              :type="showRepeatPassword ? 'text' : 'password'"
+              id="password_repetition"
+              v-model="form.password_repetition"
+              required
+              placeholder="Повторите пароль"
+              class="form-input"
+              :class="{ 'error': errors.password_repetition || (!passwordsMatch && form.password_repetition) }"
+              :disabled="isLoading"
+              @blur="validatePasswordRepetition"
+            >
+            <span class="password-toggle" @click="toggleRepeatPasswordVisibility">
+              <i v-if="showRepeatPassword" class="eye-icon">👁️</i>
+              <i v-else class="eye-icon">👁️</i>
+            </span>
+          </div>
           <p v-if="errors.password_repetition" class="error-message">{{ errors.password_repetition }}</p>
           <p v-if="!passwordsMatch && form.password_repetition && !errors.password_repetition" class="error-message">Пароли не совпадают</p>
         </div>
@@ -150,7 +163,9 @@ export default {
       submitted: false,
       isLoading: false,
       serverError: '',
-      redirectTimer: null
+      redirectTimer: null,
+      showPassword: false,
+      showRepeatPassword: false
     };
   },
   computed: {
@@ -164,6 +179,36 @@ export default {
     }
   },
   methods: {
+    formatPhone() {
+      // Удаляем все нецифровые символы
+      let phone = this.form.phone.replace(/\D/g, '');
+      
+      // Если номер начинается с 7 или 8, заменяем на +7
+      if (phone.startsWith('7') || phone.startsWith('8')) {
+        phone = '+7' + phone.substring(1);
+      } else if (phone.startsWith('9') && phone.length <= 10) {
+        phone = '+7' + phone;
+      }
+      
+      // Форматируем номер по маске +7(999)-999-99-99
+      if (phone.length > 2) {
+        phone = phone.replace(/^(\+\d{1})(\d{3})(\d{0,3})(\d{0,2})(\d{0,2})/, (match, g1, g2, g3, g4, g5) => {
+          let result = g1 + '(' + g2;
+          if (g3) result += ')-' + g3;
+          if (g4) result += '-' + g4;
+          if (g5) result += '-' + g5;
+          return result;
+        });
+      }
+      
+      this.form.phone = phone;
+    },
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
+    toggleRepeatPasswordVisibility() {
+      this.showRepeatPassword = !this.showRepeatPassword;
+    },
     validateName() {
       const cyrillicRegex = /^[а-яё\s\-]+$/iu;
       if (!this.form.name) {
@@ -195,11 +240,11 @@ export default {
       }
     },
     validatePhone() {
-      const phoneRegex = /^\+?[0-9\-\s()]+$/;
+      const phoneRegex = /^\+7\(\d{3}\)-\d{3}-\d{2}-\d{2}$/;
       if (!this.form.phone) {
         this.errors.phone = 'Поле обязательно для заполнения';
       } else if (!phoneRegex.test(this.form.phone)) {
-        this.errors.phone = 'Неверный формат телефона';
+        this.errors.phone = 'Введите телефон в формате +7(999)-999-99-99';
       } else {
         this.errors.phone = '';
       }
@@ -317,14 +362,14 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7); /* Прозрачность фона */
+  background-color: rgba(255, 255, 255, 0.7);
   z-index: 0;
 }
 
 .registration-container {
   width: 100%;
   max-width: 500px;
-  background: rgba(255, 255, 255, 0.9); /* Прозрачность формы */
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(45, 59, 34, 0.1);
   padding: 40px;
@@ -358,12 +403,36 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: center; /* Центрируем элементы формы */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%; /* Занимаем всю доступную ширину */
+  max-width: 400px; /* Фиксированная ширина, как у кнопки */
+}
+
+.password-group {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.eye-icon {
+  font-size: 16px;
 }
 
 label {
@@ -378,7 +447,9 @@ label {
   border-radius: 8px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: rgba(249, 249, 249, 0.8); /* Прозрачность полей ввода */
+  background-color: rgba(249, 249, 249, 0.8);
+  width: 100%; /* Занимаем всю ширину родителя */
+  box-sizing: border-box; /* Учитываем padding в ширине */
 }
 
 .form-input:focus {
@@ -400,6 +471,8 @@ label {
   color: #ff4444;
   font-size: 0.8em;
   margin-top: 5px;
+  width: 100%; /* Ширина как у полей ввода */
+  max-width: 400px; /* Совпадает с шириной полей */
 }
 
 .server-error {
@@ -410,6 +483,9 @@ label {
   text-align: center;
   font-size: 14px;
   border: 1px solid #ffd0d0;
+  width: 100%;
+  max-width: 400px; /* Совпадает с шириной полей */
+  box-sizing: border-box;
 }
 
 .submit-btn {
@@ -427,6 +503,8 @@ label {
   justify-content: center;
   align-items: center;
   min-height: 48px;
+  width: 100%;
+  max-width: 400px; /* Фиксированная ширина кнопки */
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -466,6 +544,9 @@ label {
   border-radius: 8px;
   color: #3c763d;
   text-align: center;
+  width: 100%;
+  max-width: 400px; /* Совпадает с шириной полей */
+  box-sizing: border-box;
 }
 
 @media (max-width: 480px) {
@@ -479,6 +560,10 @@ label {
   
   .form-input, .submit-btn {
     padding: 12px 14px;
+  }
+  
+  .form-group, .submit-btn, .error-message, .server-error, .success-message {
+    max-width: 100%; /* На маленьких экранах занимаем всю ширину */
   }
 }
 </style>

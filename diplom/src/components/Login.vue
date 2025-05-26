@@ -17,17 +17,23 @@
             :disabled="isLoading"
           />
         </div>
-        <div class="form-group">
+        <div class="form-group password-group">
           <label for="password">Пароль:</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            required
-            placeholder="Введите ваш пароль"
-            class="form-input"
-            :disabled="isLoading"
-          />
+          <div class="password-input-wrapper">
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              id="password"
+              v-model="password"
+              required
+              placeholder="Введите ваш пароль"
+              class="form-input"
+              :disabled="isLoading"
+            />
+            <span class="password-toggle" @click="togglePasswordVisibility">
+              <i v-if="showPassword" class="eye-icon">👁️</i>
+              <i v-else class="eye-icon">👁️</i>
+            </span>
+          </div>
         </div>
         <button 
           type="submit" 
@@ -54,7 +60,8 @@ export default {
       email: '',
       password: '',
       errorMessage: '',
-      isLoading: false
+      isLoading: false,
+      showPassword: false
     }
   },
   computed: {
@@ -67,6 +74,9 @@ export default {
     return { router };
   },
   methods: {
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
     async handleSubmit() {
       if (this.isLoading || !this.isFormValid) return;
       
@@ -125,14 +135,14 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7); /* Прозрачность фона */
+  background-color: rgba(255, 255, 255, 0.7);
   z-index: 0;
 }
 
 .login-container {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.9); /* Прозрачность формы */
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(45, 59, 34, 0.1);
   padding: 40px;
@@ -166,12 +176,36 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  align-items: center; /* Добавлено для центрирования */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%; /* Добавлено для одинаковой ширины */
+  max-width:400px; /* Ограничение ширины как у кнопки */
+}
+
+.password-group {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.eye-icon {
+  font-size: 16px;
 }
 
 label {
@@ -186,7 +220,9 @@ label {
   border-radius: 8px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: rgba(249, 249, 249, 0.8); /* Прозрачность полей ввода */
+  background-color: rgba(249, 249, 249, 0.8);
+  width: 100%; /* Изменено на 100% для заполнения родителя */
+  box-sizing: border-box; /* Добавлено для правильного расчета ширины */
 }
 
 .form-input:focus {
@@ -215,6 +251,8 @@ label {
   justify-content: center;
   align-items: center;
   min-height: 48px;
+  width: 100%;
+  max-width:400px /* Ограничение ширины */
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -255,6 +293,11 @@ label {
   text-align: center;
   font-size: 14px;
   border: 1px solid #ffd0d0;
+  width: 100%;
+  max-width: 340px; /* Согласовано с другими элементами */
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 @media (max-width: 480px) {
