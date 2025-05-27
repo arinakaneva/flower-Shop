@@ -253,7 +253,7 @@ export default {
       if (!this.form.password) {
         this.errors.password = 'Поле обязательно для заполнения';
       } else if (this.form.password.length < 8) {
-        this.errors.password = 'Минимум 8 символов';
+        this.errors.password = 'Пароль должен содержать хотя бы одну заглавную букву и одну цифру,8 символов';
       } else {
         this.errors.password = '';
       }
