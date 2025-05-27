@@ -159,102 +159,64 @@
     </div>
 
     <!-- Модальное окно добавления/редактирования товара -->
-    <transition name="fade">
-      <div v-if="showAddModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-container">
-          <button class="modal-close" @click="closeModal">
-            <i class="fas fa-times"></i>
-          </button>
-          
-          <h2 class="modal-title">{{ editingProduct ? 'Редактировать товар' : 'Добавить товар' }}</h2>
-          
-          <form @submit.prevent="submitProductForm" class="product-form">
-            <div class="form-group">
-              <label>Название товара</label>
-              <input type="text" v-model="currentProduct.name" required>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Цена (₽)</label>
-                <input type="number" v-model="currentProduct.price" min="0" step="0.01" required>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label>ID Категории</label>
-              <input 
-                type="number" 
-                v-model.number="currentProduct.category" 
-                min="1" 
-                required
-                placeholder="Введите числовой ID категории"
-              >
-            </div>
-            
-            <div class="form-group">
-              <label>Описание</label>
-              <textarea v-model="currentProduct.description" rows="4"></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label>Изображение</label>
-              <input type="file" @change="handleFileUpload" accept="image/*">
-              <div v-if="imagePreview" class="image-preview">
-                <img :src="imagePreview" alt="Предпросмотр">
-              </div>
-            </div>
-            
-            <div class="form-actions">
-              <button type="button" @click="closeModal" class="btn-cancel">Отмена</button>
-              <button type="submit" class="btn-submit" :disabled="submitting">
-                {{ submitting ? 'Сохранение...' : (editingProduct ? 'Сохранить изменения' : 'Добавить товар') }}
-              </button>
-            </div>
-          </form>
-        </div>
+      <transition name="fade" @after-enter="disableBodyScroll" @after-leave="enableBodyScroll">
+    <div v-if="showAddModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container">
+        <button class="modal-close" @click="closeModal">
+          <i class="fas fa-times"></i>
+        </button>
+        
+        <h2 class="modal-title">{{ editingProduct ? 'Редактировать товар' : 'Добавить товар' }}</h2>
+        
+<form @submit.prevent="submitProductForm" class="product-form">
+  <div class="form-group">
+    <label>Название товара</label>
+    <input type="text" v-model="currentProduct.name" required>
+  </div>
+  
+  <div class="form-row">
+    <div class="form-group">
+      <label>Цена (₽)</label>
+      <input type="number" v-model="currentProduct.price" min="0" step="0.1" required>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label>Категория</label>
+    <select v-model="currentProduct.category" required>
+      <option value="" disabled>Выберите категорию</option>
+      <option v-for="category in categories" :key="category.id" :value="category.id">
+        {{ category.name }}
+      </option>
+    </select>
+  </div>
+  
+  <div class="form-group">
+    <label>Описание</label>
+    <textarea v-model="currentProduct.description" rows="4"></textarea>
+  </div>
+  
+  <div class="form-group">
+    <label>Изображение</label>
+    <input type="file" @change="handleFileUpload" accept="image/*">
+    <div v-if="imagePreview" class="image-preview">
+      <img :src="imagePreview" alt="Предпросмотр">
+    </div>
+  </div>
+  
+  <div class="form-actions">
+    <button type="button" @click="closeModal" class="btn-cancel">Отмена</button>
+    <button type="submit" class="btn-submit" :disabled="submitting">
+      {{ submitting ? 'Сохранение...' : (editingProduct ? 'Сохранить изменения' : 'Добавить товар') }}
+    </button>
+  </div>
+</form>
       </div>
-    </transition>
-
-    <!-- Модальное окно просмотра товара -->
-    <transition name="fade">
-      <div v-if="showViewModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-container view-modal">
-          <button class="modal-close" @click="closeModal">
-            <i class="fas fa-times"></i>
-          </button>
-          
-          <div class="modal-content">
-            <div class="modal-gallery">
-              <img :src="getPhotoUrl(currentProduct.photo)" :alt="currentProduct.name" class="modal-main-image">
-            </div>
-            
-            <div class="modal-details">
-              <h2 class="modal-title">{{ currentProduct.name }}</h2>
-              
-              <div class="price-section">
-                <span class="current-price">{{ formatPrice(currentProduct.price) }} ₽</span>
-              </div>
-              
-              <div class="product-meta">
-                <div class="meta-item" v-if="currentProduct.category">
-                  <i class="fas fa-tag"></i>
-                  <span>Категория: {{ currentProduct.category }}</span>
-                </div>
-              </div>
-              
-              <div class="product-description" v-if="currentProduct.description">
-                <h3><i class="fas fa-align-left"></i> Описание</h3>
-                <p>{{ currentProduct.description }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
+    </div>
+  </transition>
 
     <!-- Модальное окно просмотра заказа -->
-    <transition name="fade">
+    <transition name="fade" @after-enter="disableBodyScroll" @after-leave="enableBodyScroll">
       <div v-if="showOrderModal" class="modal-overlay" @click.self="closeModal">
         <div class="modal-container order-modal">
           <button class="modal-close" @click="closeModal">
@@ -335,6 +297,7 @@ export default {
     return {
       activeTab: 'products',
       products: [],
+      categories: [],
       productsLoading: true,
       orders: [],
       ordersLoading: false,
@@ -361,13 +324,37 @@ export default {
       notificationTitle: '',
       notificationMessage: '',
       notificationType: 'success',
-      notificationIcon: 'fas fa-check-circle'
+      notificationIcon: 'fas fa-check-circle',
+      scrollPosition: 0
     };
   },
   mounted() {
     this.fetchProducts();
+    this.fetchCategories();
   },
   methods: {
+    disableBodyScroll() {
+      // Сохраняем текущую позицию прокрутки
+      this.scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Фиксируем позицию и отключаем прокрутку
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${this.scrollPosition}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+    },
+    
+    enableBodyScroll() {
+      // Восстанавливаем прокрутку
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      
+      // Возвращаем страницу на сохраненную позицию
+      window.scrollTo(0, this.scrollPosition);
+    },
+
     getPhotoUrl(photoPath) {
       if (!photoPath) return 'https://via.placeholder.com/150';
       if (photoPath.startsWith('http') || photoPath.startsWith('data:')) return photoPath;
@@ -476,20 +463,38 @@ export default {
       this.currentOrder = { ...order };
       this.showOrderModal = true;
     },
+     async fetchCategories() {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await axios.get('https://k-kaneva.сделай.site/api/categories', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
-    editProduct(product) {
-      this.currentProduct = {
-        name: product.name,
-        price: product.price,
-        category: product.id_category || product.category || '',
-        description: product.description || '',
-        photo: product.photo
-      };
-      
-      this.imagePreview = product.photo ? this.getPhotoUrl(product.photo) : null;
-      this.editingProduct = product;
-      this.showAddModal = true;
-    },
+    if (response.data && response.data.data) {
+      this.categories = response.data.data;
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке категорий:', error);
+    this.showAlert('Ошибка', 'Не удалось загрузить категории', 'error');
+  }
+},
+    
+   editProduct(product) {
+  this.currentProduct = {
+    id_product: product.id_product, // Добавляем ID продукта
+    name: product.name,
+    price: product.price,
+    category: product.id_category|| '',
+    description: product.description || '',
+    photo: product.photo
+  };
+  
+  this.imagePreview = product.photo ? this.getPhotoUrl(product.photo) : null;
+  this.editingProduct = product;
+  this.showAddModal = true;
+},
     
     handleFileUpload(event) {
       const file = event.target.files[0];
@@ -1212,56 +1217,56 @@ input[type="file"] {
   transform: translateY(20px);
 }
   
-  /* Адаптивность */
-  @media (max-width: 992px) {
-    .modal-content {
-      flex-direction: column;
-    }
-    
-    .modal-gallery {
-      flex: 0 0 auto;
-      max-width: 100%;
-      height: 250px;
-      margin-bottom: 1.5rem;
-    }
+/* Адаптивность */
+@media (max-width: 992px) {
+  .modal-content {
+    flex-direction: column;
   }
   
-  @media (max-width: 768px) {
-    .admin-panel {
-      padding: 1rem;
-    }
-    
-    .admin-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-    
-    .form-row {
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .modal-container {
-      width: 95%;
-      padding: 1.5rem;
-    }
-    
-    .actions {
-      flex-direction: column;
-    }
-    
-    .btn-view, .btn-edit {
-      width: 100%;
-      justify-content: center;
-    }
+  .modal-gallery {
+    flex: 0 0 auto;
+    max-width: 100%;
+    height: 250px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-panel {
+    padding: 1rem;
   }
   
-  @media (max-width: 480px) {
-    .notification {
-      width: calc(100% - 40px);
-      right: 20px;
-      bottom: 20px;
-    }
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
-  </style>
+  
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .modal-container {
+    width: 95%;
+    padding: 1.5rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+  
+  .btn-view, .btn-edit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification {
+    width: calc(100% - 40px);
+    right: 20px;
+    bottom: 20px;
+  }
+}
+</style>

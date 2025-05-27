@@ -14,12 +14,12 @@
         </select>
       </div>
       
-      <div class="filter-options">
+    <div class="filter-options">
         <label for="category">Фильтр по категории:</label>
         <select id="category" v-model="selectedCategory" @change="applyFilters">
           <option value="">Все категории</option>
-          <option v-for="category_name in uniqueCategories" :key="category_name" :value="category_name">
-            {{ category_name }}
+          <option v-for="category in categories" :key="category.id" :value="category.name">
+            {{ category.name }}
           </option>
         </select>
       </div>
@@ -151,6 +151,7 @@ export default {
   data() {
     return {
       products: [],
+      categories: [],
       filteredProducts: [],
       loading: true,
       selectedProduct: null,
@@ -179,33 +180,49 @@ export default {
     },
     
     async fetchProducts() {
+  try {
+    const response = await axios.get('https://k-kaneva.сделай.site/api/product');
+    if (response.data && response.data.data) {
+      // Сначала получаем категории
+      await this.fetchCategories();
+      
+      this.products = response.data.data.map(product => {
+        const photo = product.photo 
+          ? product.photo.replace(
+              '/home/kaneva/web/k-kaneva.xn--80ahdri7a.site/public_html',
+              'https://k-kaneva.сделай.site'
+            )
+          : '';
+        
+        // Находим название категории по id_category
+        const category = this.categories.find(c => c.id === product.id_category);
+        const category_name = category ? category.name : 'Неизвестная категория';
+        
+        return {
+          ...product,
+          photo,
+          category_name // Добавляем название категории к продукту
+        };
+      });
+      
+      this.applyFilters();
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке товаров:', error);
+  } finally {
+    this.loading = false;
+  }
+},
+    async fetchCategories() {
       try {
-        const response = await axios.get('https://k-kaneva.сделай.site/api/product');
+        const response = await axios.get('https://k-kaneva.сделай.site/api/categories');
         if (response.data && response.data.data) {
-          this.products = response.data.data.map(product => {
-            const photo = product.photo 
-              ? product.photo.replace(
-                  '/home/kaneva/web/k-kaneva.xn--80ahdri7a.site/public_html',
-                  'https://k-kaneva.сделай.site'
-                )
-              : '';
-            return {
-              ...product,
-              photo
-            };
-          });
-          
-          // Получаем уникальные категории из category_name
-          this.uniqueCategories = [...new Set(this.products.map(p => p.category_name))];
-          this.applyFilters();
+          this.categories = response.data.data;
         }
       } catch (error) {
-        console.error('Ошибка при загрузке товаров:', error);
-      } finally {
-        this.loading = false;
+        console.error('Ошибка при загрузке категорий:', error);
       }
     },
-    
     applyFilters() {
       // Применяем фильтр по категории (теперь сравниваем category_name)
       if (this.selectedCategory) {

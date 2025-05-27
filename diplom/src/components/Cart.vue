@@ -94,8 +94,16 @@
           
           <div class="form-group">
             <label for="phone">Телефон:</label>
-            <input type="tel" id="phone" v-model="orderData.phone" required placeholder="+7 (XXX) XXX-XX-XX">
-          </div>
+            <input 
+                  type="tel" 
+                  id="phone" 
+                  v-model="formattedPhone" 
+                  required 
+                  placeholder="+7 (XXX) XXX-XX-XX"
+                  @input="formatPhone"
+                  maxlength="17"
+                >
+            </div>
           
           <div class="form-group">
             <label for="address">Адрес доставки:</label>
@@ -149,7 +157,10 @@ export default {
         pay: '',
         comment: '',
         id_cart: null
-      }
+      },
+      scrollPosition: 0,
+      formattedPhone: '',
+      rawPhone: ''
     }
   },
   computed: {
@@ -161,6 +172,39 @@ export default {
     this.fetchCartItems()
   },
   methods: {
+     formatPhone(event) {
+      // Получаем значение из инпута
+      let value = event.target.value.replace(/\D/g, '')
+      
+      // Сохраняем сырое значение (только цифры)
+      this.rawPhone = value
+      
+      // Форматируем номер телефона
+      if (value.length > 0) {
+        value = value.substring(0, 11) // Ограничиваем 11 цифрами
+        
+        let formatted = '+7'
+        if (value.length > 1) {
+          formatted += `(${value.substring(1, 4)}`
+        }
+        if (value.length > 4) {
+          formatted += `)-${value.substring(4, 7)}`
+        }
+        if (value.length > 7) {
+          formatted += `-${value.substring(7, 9)}`
+        }
+        if (value.length > 9) {
+          formatted += `-${value.substring(9, 11)}`
+        }
+        
+        this.formattedPhone = formatted
+      } else {
+        this.formattedPhone = ''
+      }
+      
+      // Обновляем orderData.phone (только цифры)
+      this.orderData.phone = value ? '+7' + value.substring(1) : ''
+    },
     async fetchCartItems() {
       try {
         this.loading = true
@@ -302,10 +346,25 @@ export default {
     },
     
     showCheckoutModal() {
+      // Сохраняем текущую позицию прокрутки
+      this.scrollPosition = window.pageYOffset || document.documentElement.scrollTop
+      // Блокируем прокрутку страницы
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${this.scrollPosition}px`
+      document.body.style.width = '100%'
+      
       this.showModal = true
     },
     
     closeModal() {
+      // Восстанавливаем прокрутку страницы
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, this.scrollPosition)
+      
       this.showModal = false
     },
     
@@ -346,7 +405,6 @@ export default {
   }
 }
 </script>
-
 
 <style scoped>
 /* Основные стили */
@@ -743,6 +801,8 @@ body {
   z-index: 1000;
   backdrop-filter: blur(5px);
   font-family: 'Montserrat', sans-serif;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .modal-content {
@@ -755,6 +815,8 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   animation: modalFadeIn 0.3s ease-out;
   font-family: 'Montserrat', sans-serif;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 @keyframes modalFadeIn {

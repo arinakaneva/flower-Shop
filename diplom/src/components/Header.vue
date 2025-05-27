@@ -13,7 +13,7 @@
       </div>
       
       <!-- Мобильное меню (бургер) -->
-      <button class="mobile-menu-btn" @click="toggleMenu" v-if="!isAdmin">
+      <button class="mobile-menu-btn" @click="toggleMenu" >
         <span></span>
         <span></span>
         <span></span>
@@ -21,7 +21,7 @@
       
       <nav :class="{ 'active': menuOpen }">
         <ul v-if="isAdmin">
-          <li><router-link to="/admin">Админ панель</router-link></li>
+          <li><router-link to="/admin">Админ-панель</router-link></li>
           <li><button @click="logout" class="logout-btn">Выйти</button></li>
         </ul>
         <ul v-else>

@@ -3,12 +3,12 @@
     <div class="footer-top">
       <div class="container">
         <div class="footer-grid">
-          <div class="footer-col">
+          <!-- <div class="footer-col">
             <h3 class="footer-title">Магазин</h3>
             <ul class="footer-links">
               <li><router-link to="/product">Каталог</router-link></li>
             </ul>
-          </div>
+          </div> -->
 
 
           <div class="footer-col">
@@ -66,7 +66,7 @@ export default {
 }
 
 .footer-top {
-  padding: 60px 0 40px;
+  padding: 30px 0 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
